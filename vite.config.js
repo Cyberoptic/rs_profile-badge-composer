@@ -6,9 +6,19 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    allowedHosts: [
+      '.sandbox.novita.ai',
+      'localhost',
+      '127.0.0.1',
+    ],
   },
   preview: {
     host: true,
     port: 4173,
+    allowedHosts: [
+      '.sandbox.novita.ai',
+      'localhost',
+      '127.0.0.1',
+    ],
   },
 })
