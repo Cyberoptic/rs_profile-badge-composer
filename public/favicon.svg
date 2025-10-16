@@ -1,1 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect width="96" height="96" rx="16" fill="#111"/><text x="50%" y="52%" text-anchor="middle" font-size="18" fill="#fff" font-family="sans-serif">PBC</text></svg>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect width="64" height="64" rx="12" fill="url(#grad)"/>
+  
+  <!-- Badge icon -->
+  <g transform="translate(12, 12)">
+    <!-- Outer badge circle -->
+    <circle cx="20" cy="20" r="18" fill="white" opacity="0.95"/>
+    
+    <!-- Inner star/badge shape -->
+    <path d="M20 5 L23 15 L33 15 L25 22 L28 32 L20 26 L12 32 L15 22 L7 15 L17 15 Z" 
+          fill="#3B82F6"/>
+    
+    <!-- Check mark overlay -->
+    <path d="M16 20 L19 23 L25 16" 
+          stroke="white" 
+          stroke-width="2.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+  </g>
+  
+  <!-- Corner accent -->
+  <circle cx="52" cy="12" r="6" fill="white" opacity="0.3"/>
+  <circle cx="52" cy="12" r="4" fill="#FCD34D"/>
+</svg>
