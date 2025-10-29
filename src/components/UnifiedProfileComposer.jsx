@@ -5,6 +5,7 @@ const UnifiedProfileComposer = () => {
   // State for images
   const [profileImage, setProfileImage] = useState(null);
   const [frameImage, setFrameImage] = useState(null);
+  const [availableFrames, setAvailableFrames] = useState([]);
   
   // State for profile image transforms
   const [profileTransform, setProfileTransform] = useState({
@@ -30,12 +31,10 @@ const UnifiedProfileComposer = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeLayer, setActiveLayer] = useState('profile'); // 'profile' or 'frame'
+  const [activeLayer, setActiveLayer] = useState('profile');
   
   // Refs
   const canvasRef = useRef(null);
-  const profileImgRef = useRef(null);
-  const frameImgRef = useRef(null);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   
@@ -44,6 +43,18 @@ const UnifiedProfileComposer = () => {
   
   // Pica instance
   const picaRef = useRef(new Pica());
+
+  // Load available frames on mount
+  useEffect(() => {
+    // プリセットフレーム一覧（public/frames/ に配置する想定）
+    const frameList = [
+      { id: 'none', name: 'なし', path: null },
+      { id: 'frame1', name: 'フレーム1', path: '/frames/frame1.png' },
+      { id: 'frame2', name: 'フレーム2', path: '/frames/frame2.png' },
+      { id: 'frame3', name: 'フレーム3', path: '/frames/frame3.png' },
+    ];
+    setAvailableFrames(frameList);
+  }, []);
 
   // Handle profile image upload
   const handleProfileImageUpload = (e) => {
@@ -61,7 +72,6 @@ const UnifiedProfileComposer = () => {
       img.onload = () => {
         setProfileImage(img);
         setActiveLayer('profile');
-        // Reset transform for new image
         setProfileTransform({
           x: 0,
           y: 0,
@@ -90,7 +100,6 @@ const UnifiedProfileComposer = () => {
       img.onload = () => {
         setFrameImage(img);
         setActiveLayer('frame');
-        // Reset transform for new image
         setFrameTransform({
           x: 0,
           y: 0,
@@ -100,6 +109,29 @@ const UnifiedProfileComposer = () => {
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
+  };
+
+  // Handle preset frame selection
+  const handlePresetFrameSelect = (framePath) => {
+    if (!framePath) {
+      setFrameImage(null);
+      return;
+    }
+    
+    const img = new Image();
+    img.onload = () => {
+      setFrameImage(img);
+      setActiveLayer('frame');
+      setFrameTransform({
+        x: 0,
+        y: 0,
+        scale: 1.0
+      });
+    };
+    img.onerror = () => {
+      alert('フレーム画像の読み込みに失敗しました');
+    };
+    img.src = framePath;
   };
 
   // Drag and drop handlers
@@ -115,7 +147,6 @@ const UnifiedProfileComposer = () => {
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     
-    // Create a fake event object
     const fakeEvent = {
       target: {
         files: [file]
@@ -336,13 +367,11 @@ const UnifiedProfileComposer = () => {
     setIsProcessing(true);
     
     try {
-      // Create a temporary canvas at full size
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = CANVAS_SIZE;
       tempCanvas.height = CANVAS_SIZE;
       const tempCtx = tempCanvas.getContext('2d');
       
-      // Draw profile image
       const centerX = CANVAS_SIZE / 2;
       const centerY = CANVAS_SIZE / 2;
       
@@ -371,7 +400,6 @@ const UnifiedProfileComposer = () => {
       );
       tempCtx.restore();
       
-      // Draw frame image if exists
       if (frameImage) {
         tempCtx.save();
         tempCtx.translate(centerX + frameTransform.x, centerY + frameTransform.y);
@@ -388,7 +416,6 @@ const UnifiedProfileComposer = () => {
         tempCtx.restore();
       }
       
-      // Resize with Pica
       const outputCanvas = document.createElement('canvas');
       outputCanvas.width = outputSize;
       outputCanvas.height = outputSize;
@@ -398,7 +425,6 @@ const UnifiedProfileComposer = () => {
         alpha: outputFormat === 'png'
       });
       
-      // Convert to blob and download
       const mimeType = outputFormat === 'png' ? 'image/png' : 'image/jpeg';
       const quality = outputFormat === 'png' ? undefined : jpgQuality / 100;
       
@@ -472,40 +498,71 @@ const UnifiedProfileComposer = () => {
             )}
           </div>
 
-          {/* Frame Image Upload */}
+          {/* Frame/Badge Selection */}
           <div className="bg-white rounded-lg border border-zinc-200 p-6">
-            <h3 className="text-lg font-semibold mb-4">② フレーム画像（オプション）</h3>
-            <div
-              className="border-2 border-dashed border-zinc-300 rounded-lg p-8 text-center hover:border-zinc-400 transition-colors cursor-pointer"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'frame')}
-              onClick={() => document.getElementById('frame-upload').click()}
-            >
-              {frameImage ? (
-                <div>
-                  <img
-                    src={frameImage.src}
-                    alt="Frame preview"
-                    className="w-20 h-20 object-cover rounded-lg mx-auto mb-2"
-                  />
-                  <p className="text-sm text-zinc-600">クリックまたはドロップで変更</p>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <p className="text-sm text-zinc-600">
-                    透過PNGをアップロード
-                  </p>
-                </div>
-              )}
+            <h3 className="text-lg font-semibold mb-4">② バッジ/フレーム選択</h3>
+            
+            {/* Preset frames */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-zinc-700 mb-2">
+                プリセット
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {availableFrames.map((frame) => (
+                  <button
+                    key={frame.id}
+                    onClick={() => handlePresetFrameSelect(frame.path)}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      (!frameImage && frame.id === 'none') || 
+                      (frameImage && frameImage.src.includes(frame.path))
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-zinc-200 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div className="text-xs font-medium">{frame.name}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <input
-              id="frame-upload"
-              type="file"
-              accept="image/png,image/webp"
-              onChange={handleFrameImageUpload}
-              className="hidden"
-            />
+
+            {/* Custom frame upload */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 mb-2">
+                カスタムフレーム
+              </label>
+              <div
+                className="border-2 border-dashed border-zinc-300 rounded-lg p-6 text-center hover:border-zinc-400 transition-colors cursor-pointer"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'frame')}
+                onClick={() => document.getElementById('frame-upload').click()}
+              >
+                {frameImage && !availableFrames.some(f => f.path && frameImage.src.includes(f.path)) ? (
+                  <div>
+                    <img
+                      src={frameImage.src}
+                      alt="Frame preview"
+                      className="w-16 h-16 object-cover rounded-lg mx-auto mb-2"
+                    />
+                    <p className="text-xs text-zinc-600">クリックで変更</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-2xl mb-1">🖼️</div>
+                    <p className="text-xs text-zinc-600">
+                      透過PNGをアップロード
+                    </p>
+                  </div>
+                )}
+              </div>
+              <input
+                id="frame-upload"
+                type="file"
+                accept="image/png,image/webp"
+                onChange={handleFrameImageUpload}
+                className="hidden"
+              />
+            </div>
+            
             {frameImage && (
               <button
                 onClick={() => {
@@ -514,7 +571,7 @@ const UnifiedProfileComposer = () => {
                 }}
                 className="mt-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
-                削除
+                フレームを削除
               </button>
             )}
           </div>
@@ -570,7 +627,7 @@ const UnifiedProfileComposer = () => {
               <ul className="list-disc list-inside pl-2 space-y-1">
                 <li>ドラッグ：画像を移動</li>
                 <li>マウスホイール：プロフィール画像をズーム（プロフィール編集モード時）</li>
-                <li>スライダー：回転・スケール調整</li>
+                <li>スライダー：位置・回転・スケール調整</li>
               </ul>
             </div>
           </div>
@@ -583,6 +640,44 @@ const UnifiedProfileComposer = () => {
                 <h4 className="text-md font-semibold mb-4 text-blue-600">プロフィール画像の調整</h4>
                 
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      X位置: {profileTransform.x.toFixed(0)}px
+                    </label>
+                    <input
+                      type="range"
+                      min="-250"
+                      max="250"
+                      value={profileTransform.x}
+                      onChange={(e) =>
+                        setProfileTransform(prev => ({
+                          ...prev,
+                          x: parseFloat(e.target.value)
+                        }))
+                      }
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      Y位置: {profileTransform.y.toFixed(0)}px
+                    </label>
+                    <input
+                      type="range"
+                      min="-250"
+                      max="250"
+                      value={profileTransform.y}
+                      onChange={(e) =>
+                        setProfileTransform(prev => ({
+                          ...prev,
+                          y: parseFloat(e.target.value)
+                        }))
+                      }
+                      className="w-full"
+                    />
+                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 mb-2">
                       拡大率: {(profileTransform.scale * 100).toFixed(0)}%
@@ -645,6 +740,44 @@ const UnifiedProfileComposer = () => {
                 <h4 className="text-md font-semibold mb-4 text-green-600">フレームの調整</h4>
                 
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      X位置: {frameTransform.x.toFixed(0)}px
+                    </label>
+                    <input
+                      type="range"
+                      min="-250"
+                      max="250"
+                      value={frameTransform.x}
+                      onChange={(e) =>
+                        setFrameTransform(prev => ({
+                          ...prev,
+                          x: parseFloat(e.target.value)
+                        }))
+                      }
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">
+                      Y位置: {frameTransform.y.toFixed(0)}px
+                    </label>
+                    <input
+                      type="range"
+                      min="-250"
+                      max="250"
+                      value={frameTransform.y}
+                      onChange={(e) =>
+                        setFrameTransform(prev => ({
+                          ...prev,
+                          y: parseFloat(e.target.value)
+                        }))
+                      }
+                      className="w-full"
+                    />
+                  </div>
+                  
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 mb-2">
                       スケール: {(frameTransform.scale * 100).toFixed(0)}%
