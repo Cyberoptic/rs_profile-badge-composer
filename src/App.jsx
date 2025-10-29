@@ -1,5 +1,6 @@
 import React from "react";
 import ProfileBadgeComposer from "./components/ProfileBadgeComposer";
+import ProfileComposer from "./components/ProfileComposer";
 
 export default function App() {
   return (
@@ -15,6 +16,12 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <ProfileBadgeComposer />
+        
+        {/* 新しく追加したProfileComposer */}
+        <div className="mt-12 pt-12 border-t border-zinc-200">
+          <h2 className="text-2xl font-bold mb-6">Profile Image Composer</h2>
+          <ProfileComposer />
+        </div>
       </main>
       <footer className="py-8 text-center text-xs text-zinc-400">
         © {new Date().getFullYear()} Profile Badge Composer
