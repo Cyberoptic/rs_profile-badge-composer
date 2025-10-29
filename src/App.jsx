@@ -1,6 +1,5 @@
 import React from "react";
-import ProfileBadgeComposer from "./components/ProfileBadgeComposer";
-import ProfileComposer from "./components/ProfileComposer";
+import UnifiedProfileComposer from "./components/UnifiedProfileComposer";
 
 export default function App() {
   return (
@@ -11,17 +10,11 @@ export default function App() {
             <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-700" />
             <h1 className="text-lg font-semibold tracking-tight">Profile Badge Composer</h1>
           </div>
-          <div className="text-xs text-zinc-500">v2.0</div>
+          <div className="text-xs text-zinc-500">v3.0</div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <ProfileBadgeComposer />
-        
-        {/* 新しく追加したProfileComposer */}
-        <div className="mt-12 pt-12 border-t border-zinc-200">
-          <h2 className="text-2xl font-bold mb-6">Profile Image Composer</h2>
-          <ProfileComposer />
-        </div>
+        <UnifiedProfileComposer />
       </main>
       <footer className="py-8 text-center text-xs text-zinc-400">
         © {new Date().getFullYear()} Profile Badge Composer
