@@ -1,5 +1,5 @@
 import React from 'react';
-import UnifiedProfileComposer from './components/UnifiedProfileComposer_v3';
+import UnifiedProfileComposer from './components/UnifiedProfileComposer';
 
 function App() {
   return (
